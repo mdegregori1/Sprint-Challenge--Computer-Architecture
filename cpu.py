@@ -37,6 +37,7 @@ class CPU:
         self.reg = [0] * 8 
         self.ram = [0] * 256 
         self.pc = 0 
+        self.fl = False
         self.branchtable = {}
         self.branchtable[LDI] = self.handle_LDI
         self.branchtable[PRN] = self.handle_PRN
@@ -93,6 +94,26 @@ class CPU:
             self.reg[reg_a] += self.reg[reg_b]
         elif op == "MUL": # Multiply the values in two registers together and store the result in registerA
             self.reg[reg_a] *= self.reg[reg_b]
+        elif op == "CMP":
+            if self.reg[reg_a] == self.reg[reg_b]:
+                self.fl = True
+        elif op == "JMP":
+            # Jump to the address stored in the given register.
+            # Set the PC to the address stored in the given register.
+            self.pc = self.reg[reg_a]
+        elif op == "JEQ":
+            # If equal flag is set (true), jump to the address stored in the given register.
+            if self.fl is False:
+                self.pc += 2
+            else:
+                self.pc = self.reg[reg_a]
+        elif op == "JNE":
+            # If E flag is clear (false, 0), jump to the address stored in the given register.
+            if self.fl is False:
+                self.pc = self.reg[reg_a]
+            else:
+                self.pc += 2
+
         else:
             raise Exception("Unsupported ALU operation")
 
