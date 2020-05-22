@@ -197,6 +197,18 @@ class CPU:
         # call alu method
         self.alu("ADD", operand_a, operand_b)
         self.pc += 3
+
+    def handle_CMP(self):
+        pass
+
+    def handle_JMP(self):
+        pass
+
+    def handle_JEQ(self):
+        pass
+
+    def handle_JNE(self):
+        pass
         
     def run(self):
         """Run the CPU."""
