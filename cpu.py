@@ -24,11 +24,6 @@ JNE = 0b01010110
 
 
 
-
-SP = 7 
-
-
-
 class CPU:
     """Main CPU class."""
 
@@ -38,6 +33,7 @@ class CPU:
         self.ram = [0] * 256 
         self.pc = 0 
         self.fl = False
+        self.SP = 7
         self.branchtable = {}
         self.branchtable[LDI] = self.handle_LDI
         self.branchtable[PRN] = self.handle_PRN
@@ -168,7 +164,7 @@ class CPU:
 
     def handle_PUSH(self):
         #Decrement the stack pointer on push
-        self.reg[SP] -= 1 
+        self.reg[self.SP] -= 1 
         # ran_read returns the ram address (not value)
         # save reg + 1 to find the address = now, reg_num should be = mem address
         reg_num = self.ram_read(self.pc + 1)
@@ -176,29 +172,29 @@ class CPU:
         value = self.reg[reg_num]
         # value found inside register needs to replace SP value
         # sp address, register val
-        self.ram_write(self.reg[SP], value)
+        self.ram_write(self.reg[self.SP], value)
         #increment by two to halt
         self.pc += 2 
 
     def handle_POP(self):
         # set value as memory address at SP 
-        value = self.ram_read(self.reg[SP]) #4a from ex
+        value = self.ram_read(self.reg[self.SP]) #4a from ex
         # save reg + 1 to find the address = now, reg_num should be = mem address
         reg_num = self.ram_read(self.pc +1) #register address, set its value to the val of SP
         self.reg[reg_num] = value
         #increase the stack pointer on pop -> previously pushed item on stack
-        self.reg[SP] += 1 #F1->F2
+        self.reg[self.SP] += 1 #F1->F2
         #increment by two to halt
         self.pc += 2
 
     def handle_CALL(self):
         # after call -> pushed to stack
         # decrement the stack
-        self.reg[SP] -= 1
+        self.reg[self.SP] -= 1
         # create address, two away from intial pc
         address = self.pc + 2
         # sp address = register address
-        self.ram[self.reg[SP]] = address
+        self.ram[self.reg[self.SP]] = address
 
         reg_num = self.ram_read(self.pc + 1)
         self.pc = self.reg[reg_num]
@@ -206,9 +202,9 @@ class CPU:
 
     def handle_RET(self):
         # Return from subroutine -> pop the val from the top of the stack, store it in pc 
-        self.pc = self.ram[self.reg[SP]]
+        self.pc = self.ram[self.reg[self.SP]]
         # increment SP
-        self.reg[SP] += 1
+        self.reg[self.SP] += 1
 
     def handle_ADD(self): 
         # add val of a and b 
@@ -220,16 +216,29 @@ class CPU:
         self.pc += 3
 
     def handle_CMP(self):
-        pass
+        operand_a = self.ram_read(self.pc + 1) 
+        operand_b = self.ram_read(self.pc + 2)
+
+        self.alu("CMP", operand_a, operand_b)
+        self.pc += 3
 
     def handle_JMP(self):
-        pass
+        operand_a = self.ram_read(self.pc + 1) 
+        operand_b = None
+
+        self.alu("JMP", operand_a, operand_b) #None b/c we don't need operand_b
 
     def handle_JEQ(self):
-        pass
+        operand_a = self.ram_read(self.pc + 1) 
+        operand_b = None
+
+        self.alu("JEQ", operand_a, operand_b) 
 
     def handle_JNE(self):
-        pass
+        operand_a = self.ram_read(self.pc + 1) 
+        operand_b = None
+
+        self.alu("JNE", operand_a, operand_b) 
         
     def run(self):
         """Run the CPU."""
@@ -239,7 +248,6 @@ class CPU:
         while running: 
             IR = self.ram[self.pc] #fetch value from RAM and then use that value to look up handler function in the branch table
             self.branchtable[IR]()
-
 
 
 
